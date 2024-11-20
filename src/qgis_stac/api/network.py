@@ -3,16 +3,19 @@ import typing
 import uuid
 import json
 
+
 from dateutil import parser
 from functools import partial
 
 from json.decoder import JSONDecodeError
+from ..lib.pystac_client.stac_api_io import StacApiIO
 
 from qgis.core import (
     QgsApplication,
     QgsAuthMethodConfig,
     QgsNetworkContentFetcherTask,
     QgsTask,
+    QgsSettings,
 )
 
 from qgis.PyQt import (
@@ -76,6 +79,22 @@ class ContentFetcherTask(QgsTask):
     client = None
     pagination = None
 
+    def getProxy():
+        settings = QgsSettings()
+        if settings.value('proxy/proxyEnabled'):
+
+            if settings.value('proxy/proxyType') == 'DefaultProxy':
+                query = QtNetwork.QNetworkProxyQuery(QtCore.QUrl("http://qgis.org"))   
+                listOfSystemProxies = QtNetwork.QNetworkProxyFactory.systemProxyForQuery(query)  
+                systemProxy = listOfSystemProxies[0]  
+                proxy_host = systemProxy.hostName()
+                proxy_port = systemProxy.port()
+            else:
+                proxy_host = settings.value('proxy/proxyHost')
+                proxy_port = settings.value('proxy/proxyPort')
+            return {"https": f"{proxy_host}:{proxy_port}"}
+
+
     def __init__(
             self,
             url: str,
@@ -108,7 +127,12 @@ class ContentFetcherTask(QgsTask):
                 self.auth_config
             )
         try:
-            self.client = Client.open(self.url, **pystac_auth)
+            
+            stac_api_io = StacApiIO()
+            stac_api_io.session.proxies = self.getProxy()
+            self.client = Client.from_file(self.url, stac_io=stac_api_io)
+
+            #self.client = Client.open(self.url, **pystac_auth)
             if self.resource_type == \
                     ResourceType.FEATURE:
                 if self.search_params:
