@@ -79,22 +79,6 @@ class ContentFetcherTask(QgsTask):
     client = None
     pagination = None
 
-    def getProxy():
-        settings = QgsSettings()
-        if settings.value('proxy/proxyEnabled'):
-
-            if settings.value('proxy/proxyType') == 'DefaultProxy':
-                query = QtNetwork.QNetworkProxyQuery(QtCore.QUrl("http://qgis.org"))   
-                listOfSystemProxies = QtNetwork.QNetworkProxyFactory.systemProxyForQuery(query)  
-                systemProxy = listOfSystemProxies[0]  
-                proxy_host = systemProxy.hostName()
-                proxy_port = systemProxy.port()
-            else:
-                proxy_host = settings.value('proxy/proxyHost')
-                proxy_port = settings.value('proxy/proxyPort')
-            return {"https": f"{proxy_host}:{proxy_port}"}
-
-
     def __init__(
             self,
             url: str,
@@ -113,6 +97,20 @@ class ContentFetcherTask(QgsTask):
         self.response_handler = response_handler
         self.error_handler = error_handler
         self.auth_config = auth_config
+
+    def getProxy(self):
+        settings = QgsSettings()
+        if settings.value('proxy/proxyEnabled'):
+            if settings.value('proxy/proxyType') == 'DefaultProxy':
+                query = QtNetwork.QNetworkProxyQuery(QtCore.QUrl("http://qgis.org"))   
+                listOfSystemProxies = QtNetwork.QNetworkProxyFactory.systemProxyForQuery(query)  
+                systemProxy = listOfSystemProxies[0]  
+                proxy_host = systemProxy.hostName()
+                proxy_port = systemProxy.port()
+            else:
+                proxy_host = settings.value('proxy/proxyHost')
+                proxy_port = settings.value('proxy/proxyPort')
+            return {"https": f"http://{proxy_host}:{proxy_port}"}
 
     def run(self):
         """
