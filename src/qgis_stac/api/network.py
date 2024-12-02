@@ -8,7 +8,6 @@ from dateutil import parser
 from functools import partial
 
 from json.decoder import JSONDecodeError
-from ..lib.pystac_client.stac_api_io import StacApiIO
 
 from qgis.core import (
     QgsApplication,
@@ -48,6 +47,7 @@ from .models import (
 )
 
 from ..lib import planetary_computer as pc
+from ..lib.pystac_client.stac_api_io import StacApiIO
 
 from pystac_client import Client
 from pystac_client.exceptions import APIError
