@@ -130,7 +130,6 @@ class ContentFetcherTask(QgsTask):
             stac_api_io.session.proxies = self.getProxy()
             self.client = Client.from_file(self.url, stac_io=stac_api_io)
 
-            #self.client = Client.open(self.url, **pystac_auth)
             if self.resource_type == \
                     ResourceType.FEATURE:
                 if self.search_params:
