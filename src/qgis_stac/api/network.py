@@ -100,7 +100,7 @@ class ContentFetcherTask(QgsTask):
 
     def getProxy(self):
         settings = QgsSettings()
-        if settings.value('proxy/proxyEnabled'):
+        if settings.value('proxy/proxyEnabled') == 'true':
             if settings.value('proxy/proxyType') == 'DefaultProxy':
                 query = QtNetwork.QNetworkProxyQuery(QtCore.QUrl("http://qgis.org"))   
                 listOfSystemProxies = QtNetwork.QNetworkProxyFactory.systemProxyForQuery(query)  
@@ -111,6 +111,8 @@ class ContentFetcherTask(QgsTask):
                 proxy_host = settings.value('proxy/proxyHost')
                 proxy_port = settings.value('proxy/proxyPort')
             return {"https": f"http://{proxy_host}:{proxy_port}"}
+        else:
+            return None
 
     def run(self):
         """
@@ -127,8 +129,12 @@ class ContentFetcherTask(QgsTask):
         try:
             
             stac_api_io = StacApiIO()
-            stac_api_io.session.proxies = self.getProxy()
-            self.client = Client.from_file(self.url, stac_io=stac_api_io)
+            proxy = self.getProxy()
+            if proxy:
+                stac_api_io.session.proxies = proxy
+                self.client = Client.from_file(self.url, stac_io=stac_api_io)
+            else:
+                self.client = Client.open(self.url, **pystac_auth)
 
             if self.resource_type == \
                     ResourceType.FEATURE:
