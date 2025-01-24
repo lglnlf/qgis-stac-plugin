@@ -112,6 +112,7 @@ class ContentFetcherTask(QgsTask):
             else:
                 proxy_host = settings.value('proxy/proxyHost')
                 proxy_port = settings.value('proxy/proxyPort')
+            #no https proxy
             return {"https": f"http://{proxy_host}:{proxy_port}"}
         else:
             return None
@@ -131,19 +132,14 @@ class ContentFetcherTask(QgsTask):
         try:
             
             stac_api_io = StacApiIO()
-            print("stac_api_io: ", stac_api_io)
             proxy = self.getProxy()
-            print("proxy: ", proxy)
             if proxy:
-                print("its proxy")
                 stac_api_io.session.proxies = proxy
-                print(stac_api_io)
                 self.client = Client.from_file(
                     self.url,
                     stac_io=stac_api_io,
                     **pystac_auth)
             else:
-                print("its not proxy")
                 self.client = Client.open(self.url, **pystac_auth)
 
             if self.resource_type == \
